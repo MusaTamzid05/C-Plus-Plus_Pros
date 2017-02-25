@@ -10,7 +10,6 @@
 
 const int MIN_AREA  = 500;
 
-cv::Mat light_pattern;
 
 std::vector<std::vector<float>>  ExtractFeatures( cv::Mat img , std::vector<int>* left = nullptr , std::vector<int>* top = nullptr );
 bool readFolderAndExtractFeatures(std::string filder , int label , int num_for_test , std::vector<float>& trainingData , std::vector<int>& responseData , std::vector<float>& testData , 
@@ -25,7 +24,6 @@ cv::Mat processImage(cv::Mat& input);
 int main(int argc , char** argv){
 
     
-    load_image("data/pattern.pgm" , light_pattern);
     trainAndTest();
     
 
