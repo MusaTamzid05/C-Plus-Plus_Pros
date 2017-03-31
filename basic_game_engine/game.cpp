@@ -22,14 +22,14 @@ namespace GameEngine{
     void Game::run(int minimum_framerate){
 
         sf::Clock clock;
-        sf::Time time_since_last_update;
+        sf::Time time_since_last_update = sf::Time::Zero;
         sf::Time  time_per_frame = sf::seconds(1.0 / minimum_framerate);
 
         while(m_window->isOpen()){
 
             process_event();
 
-            time_since_last_update = clock.restart();
+            time_since_last_update += clock.restart();
 
             // if the time since the last update is better than the time per frame
             // then we need to do some extra updates
@@ -37,10 +37,10 @@ namespace GameEngine{
             if(time_since_last_update > time_per_frame){
 
                 time_since_last_update -= time_per_frame;
+                process_event();
                 update(time_per_frame);
             }
 
-            update_states(time_since_last_update);
             render();
         }
     }
