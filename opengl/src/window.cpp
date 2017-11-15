@@ -1,110 +1,119 @@
 #include "window.h"
-
-#include <GLFW/glfw3.h>
-
-
-
 #include <iostream>
 
 
-namespace OpenGL {
+namespace  Screen {
 
+    Window::Window(const std::string& title , const int width , int height ):width(width) , height(height) , title(title) , m_shader(nullptr) , m_window(nullptr) {
 
-    Window::Window(const std::string& window_name , int width , int height ) {
-
-        m_window = new sf::Window(sf::VideoMode(width , height) , window_name , sf::Style::Default); 
-        m_window->setVerticalSyncEnabled(true);
-
-        if(!init_glew()) {
-
-            std::cerr << "glew initialization failed.\n";
-            std::terminate();
-        }
-
-        std::cout << "glew initialize.\n";
-        m_running = true;
+        init_glfw();
+        init_window();
+        load_opengl_functions();
 
     }
 
     Window::~Window() {
 
         if(m_window != nullptr)
-            delete m_window;
+            glfwTerminate();
+
+
+        if(m_shader != nullptr)
+            delete m_shader;
+
     }
 
+    void Window::init_glfw() {
 
-    bool Window::init_glew() {
 
-        bool glew_initialize = false;
+        if(!glfwInit()) {
 
-        
+            std::cerr << "Could not create glfw window.\n";
+            exit(0);
+        }
+
+
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-        glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+
+        std::cout << "glfw initialize.\n";
+    }
+
+    void Window::init_window() {
+
+        std::cout << "Trying to  init window.\n";
+        m_window = glfwCreateWindow(width , height , title.c_str() ,nullptr , nullptr);
 
 
-        GLenum success = glewInit();
+        if(m_window == nullptr) {
+
+            std::cerr << "Failed to create glfw window.\n";
+            exit(1);
+        }
+
+        std::cout << "Window is already created.\n";
 
 
+        glfwMakeContextCurrent(m_window);
+        glfwSetFramebufferSizeCallback(m_window , framebuffer_size_callback);
+        std::cout << "Context made current.\n";
 
-        if(success == GLEW_OK) 
-            glew_initialize = true;
+    }
+    
+    void Window::framebuffer_size_callback(GLFWwindow* window, int width, int height){
 
 
-        return glew_initialize;
+        // make sure the viewport matches the new window dimensions; note that width and 
+        // height will be significantly larger than specified on retina displays.
+        glViewport(0, 0, width, height);
+    }
 
+    void Window::load_opengl_functions() {
+
+
+        if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)){
+
+            std::cout << "Failed to initialize GLAD" << std::endl;
+            exit(2);
+        }
+
+    }
+    
+    void Window::init_shader(const std::string& vertex_shader_filename, const std::string& fragment_shader_filename) {
+
+        m_shader = new OpenGL::Shader(vertex_shader_filename , fragment_shader_filename);
+    }
+
+    void Window::processInput(GLFWwindow* window) {
+
+        if(glfwGetKey(window , GLFW_KEY_ESCAPE) == GLFW_PRESS)
+            glfwSetWindowShouldClose(window , true);
     }
 
     void Window::run() {
 
-
-        while(m_running) {
-
-            handle_event();
-            update();
-            render();
-
+        while(!glfwWindowShouldClose(m_window)) {
             
+            processInput(m_window);
+
+            render();
+            draw();
+            swap_buffers();
+            glfwPollEvents();
+
         }
-
-
-    }
-
-    void Window::update() {
-
-
-    }
-
-
-    void Window::handle_event() {
-
-        while(m_window->pollEvent(m_event)) {
-
-            if(m_event.type == sf::Event::Closed)
-                m_running = false;
-
-            else if(m_event.type == sf::Event::Resized) {
-
-                glViewport(0 , 0 , m_event.size.width , m_event.size.height);
-            }
-        }
-
-    }
-
-
-    void Window::clear_window() {
-
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glClearColor(0.0 , 0.2 , .5 , 1.0);
     }
 
     void Window::render() {
 
-        clear_window();
-        draw();
-        m_window->display();
-
-
+        glClearColor(0.2f , 0.3f , 0.3f , 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
     }
+
+    void Window::swap_buffers() {
+
+        glfwSwapBuffers(m_window);
+    }
+
 };

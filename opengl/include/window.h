@@ -3,47 +3,51 @@
 
 
 #include <string>
-
-
-#include <SFML/Window.hpp>
 #include "includes.h"
+#include "shader.h"
 
-
-
-namespace OpenGL {
+namespace Screen {
 
     class Window {
 
         public:
 
-            Window(const std::string& window_name = "Game" , int width = 800 , int height = 640);
-
+            Window(const std::string& title = "Window" , const int width = 800 , int height = 640);
             virtual ~Window();
 
+            void init_shader(const std::string& vetex_shader_filename, const std::string& fragment_shader_filename);
+
             void run();
-            
+
         protected:
 
-            bool init_glew();
+            void init_glfw();
+            void init_window();
+            void load_opengl_functions();
+
+        
 
 
-            virtual void update();
+            GLFWwindow* m_window;
+            OpenGL::Shader* m_shader;
 
-            void clear_window();
-            virtual void draw(){  /* this is the function to should be overide */ }
-            virtual void render();
-
-            virtual void handle_event();
+            static void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+            static void processInput(GLFWwindow* window);
 
 
-            sf::Window* m_window;
-            sf::Event m_event;
+            void render();
+            virtual void draw(){}
 
-            bool m_running;
+
+            void swap_buffers();
+
+            int width;
+            int height;
+            std::string title;
+
 
 
     };
 };
-
 
 #endif
